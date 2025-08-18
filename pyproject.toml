@@ -1,0 +1,19 @@
+[project]
+name = "mres-index"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Justin Schembri", email = "justin@compound-engineering.com" }
+]
+requires-python = ">=3.11"
+dependencies = [
+    "pydantic>=2.11.7",
+]
+
+[project.scripts]
+mres-index = "mres_index:main"
+
+[build-system]
+requires = ["uv_build>=0.8.8,<0.9.0"]
+build-backend = "uv_build"
