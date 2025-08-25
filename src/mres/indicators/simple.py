@@ -1,11 +1,11 @@
 """Simplified scripts for applying known multi-hazard indexes to geojsons."""
-#stdlib
+# standard library
 import pathlib
 import os
-from typing import Literal
+from typing import Literal, Any
 import csv
-
-#external
+import json
+# external
 # internal
 from .indicators import (
         FloodResilienceIndicators, 
@@ -88,12 +88,37 @@ def calculate_rrl(
     """Iterate through an array of resilience indicators and calculate the RRL."""
     resilience_readiness_levels = {}
     for indicator in indicator_array:
-        resilience_readiness_levels[indicator.id] = indicator.calculate_rrl()
+        resilience_readiness_levels[str(indicator.id)] = indicator.calculate_rrl()
 
     return resilience_readiness_levels
 
-def modify_geojson():
-    ...
+def modify_geojson(
+        path: pathlib.Path,
+        rrl_type: Literal["heat", "seismic", "flood", "wind"],
+        rrls: dict[Any, Any],
+        in_place: bool = True
+        ) -> None | dict:
+
+    with open(path, "r") as f:
+        geojson = json.load(f)
+        if not geojson.get("features"):
+            raise ValueError(f"No features found in GEOJSON at {path},")
+        
+        for idx, feature in enumerate(geojson.get("features")):
+            feature: dict[str, Any]
+            id = feature.get("id")
+            rrl = rrls.get(id)
+            if not rrl:
+                continue
+            geojson["features"][idx]["properties"][f"{rrl_type}_rrl"] = rrl
+    
+    if not in_place:
+        return json.dumps(geojson)
+
+    elif in_place:
+        with open(path, "w") as f:
+            json.dump(geojson, f)
+
 
 def simple_rrl_calculator(path: pathlib.Path):
     """Take the available RRL indicator data in a directory and return an augmented GeoJSON File."""
