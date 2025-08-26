@@ -1,19 +1,20 @@
 [project]
 name = "mres"
 version = "0.1.0"
-description = "Add your description here"
+description = "MULTICARE Multi-Hazard Resilience Metrics Integrator."
 readme = "README.md"
 authors = [
-    { name = "Justin Schembri", email = "justin@compound-engineering.com" }
+    { name = "Justin Schembri", email = "j.schembri@tudelft.nl" }
 ]
 requires-python = ">=3.13"
 dependencies = [
     "pydantic>=2.11.7",
     "pytest>=8.4.1",
+    "typer>=0.16.1",
 ]
 
 [project.scripts]
-mres-index = "mres:main"
+mres = "mres.main:cli"
 
 [build-system]
 requires = ["uv_build>=0.8.8,<0.9.0"]

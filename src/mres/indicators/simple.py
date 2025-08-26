@@ -15,32 +15,57 @@ from .indicators import (
         WindResilienceIndicators
         )
 
-def find_geojson(path:pathlib.Path | None = None) -> pathlib.Path:
-    """Walk the current working directory find the exposure.json file."""
+def find_geojson(path: pathlib.Path | None = None) -> pathlib.Path:
+    """
+    Return `Path` object of the exposure file in the current working directory.
+
+    Args:
+        path (pathlib.Path | None): Directory to search. Defaults to None, which
+        searches the current working directory.
+
+    Returns:
+        pathlib.Path: Path to the found exposure file (`exposure.json` or 
+        `exposure.geojson`).
+
+    Raises:
+        FileNotFoundError: If no exposure file is found.
+        ValueError: If both `.json` and `.geojson` exposure files are found.
+    """
     path = path or pathlib.Path(os.getcwd())
     potential_file = list(path.glob("exposure.json")) + list(path.glob("exposure.geojson"))
     if not potential_file:
         raise FileNotFoundError(
-                f"Did not find exposure.json/geojson in {path}"
-                )
+            f"Did not find exposure.json/geojson in {path}. " +
+            f"Is this the correct directory?"
+        )
     elif len(potential_file) > 1:
         raise ValueError(
-                f"Found indicators as .json and .geojson, in {path} will not " +
-                f"proceed to avoid confusion."
-                )
+            f"Found indicators as .json and .geojson in {path}, will not "
+            f"proceed to avoid confusion."
+        )
     return potential_file[0]
 
 def find_indicators_csv(
         hazard: Literal["heat", "seismic", "wind", "flood"],
         path:pathlib.Path | None = None
-        ) -> pathlib.Path:
-    """Walk the current working directory find the indicators.csv file."""
+        ) -> pathlib.Path | None:
+    """
+    Return `Path` object of indicator files in current working directory.
+
+    Args:
+        hazard (Literal["heat", "seismic", "wind", "flood"]): Hazard indicator 
+        to search for, for example passing `heat` will find 
+        `heat_indicators.csv`.
+        path (pathlib.Path | None): Direct to search, defaults to None which
+        searches through current working directory.
+
+    Returns:
+        `Path` object of `{hazard}_indicators.csv` found, None if nothing found.
+    """
     path = path or pathlib.Path(os.getcwd())
     potential_file = list(path.glob(f"{hazard}_indicators.csv"))
     if not potential_file:
-        raise FileNotFoundError(
-                f"Did not find indicators.json in {path}"
-                )
+        return None
     elif len(potential_file) > 1:
         raise ValueError(
                 f"Found indicators as .json and .csv, in {path} will not " +
@@ -96,14 +121,24 @@ def modify_geojson(
         path: pathlib.Path,
         rrl_type: Literal["heat", "seismic", "flood", "wind"],
         rrls: dict[Any, Any],
-        in_place: bool = True
-        ) -> None | dict:
+        ) -> int:
+    """
+    Update GeoJSON file at `path`, embedding RRLs into schema.
 
+    Args:
+        path (Path): Path to exposure.json file to modify.
+        rrl_type (Literal): RRL type to add to json object.
+        rrls: Dict object containing buildings and their respective RRLs.
+
+    Returns:
+        int: returns the number of modified buildings.
+    """
     with open(path, "r") as f:
         geojson = json.load(f)
         if not geojson.get("features"):
             raise ValueError(f"No features found in GEOJSON at {path},")
         
+        modified_buildings = 0
         for idx, feature in enumerate(geojson.get("features")):
             feature: dict[str, Any]
             id = feature.get("id")
@@ -111,13 +146,11 @@ def modify_geojson(
             if not rrl:
                 continue
             geojson["features"][idx]["properties"][f"{rrl_type}_rrl"] = rrl
-    
-    if not in_place:
-        return json.dumps(geojson)
+            modified_buildings += 1
 
-    elif in_place:
-        with open(path, "w") as f:
-            json.dump(geojson, f)
+    with open(path, "w") as f:
+        json.dump(geojson, f)
+        return modified_buildings
 
 
 def simple_rrl_calculator(path: pathlib.Path):
