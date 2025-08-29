@@ -48,7 +48,7 @@ def find_geojson(path: pathlib.Path | None = None) -> pathlib.Path:
 def find_indicators_csv(
         hazard: Literal["heat", "seismic", "wind", "flood"],
         path:pathlib.Path | None = None
-        ) -> pathlib.Path | None:
+        ) -> pathlib.Path:
     """
     Return `Path` object of indicator files in current working directory.
 
@@ -65,7 +65,9 @@ def find_indicators_csv(
     path = path or pathlib.Path(os.getcwd())
     potential_file = list(path.glob(f"{hazard}_indicators.csv"))
     if not potential_file:
-        return None
+        raise ValueError(
+                f"Did not find indicators.csv"
+                )
     elif len(potential_file) > 1:
         raise ValueError(
                 f"Found indicators as .json and .csv, in {path} will not " +

@@ -4,7 +4,14 @@
 from pydantic import BaseModel, Field
 from typing import Union
 from abc import ABC, abstractmethod
+from enum import Enum
 #external
+
+class HazardType(Enum):
+    HEAT = "heat"
+    SEISMIC = "seismic"
+    FLOOD = "flood"
+    WIND = "wind"
 
 class ResilienceIndicator(BaseModel, ABC):
 

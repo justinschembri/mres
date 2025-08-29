@@ -23,6 +23,8 @@ At the bare minimum `mres` requires two files:
    hazard; for more information on the resilience indicators, refer
    [here](#the-resilience-indicators).
 
+### `mres template`
+
 Both the exposure model and the resilience indicators must refer to buildings by
 the same references. The first step is to create the required resilience
 indicators template (using the same building IDs) with the `mres` CLI. For
@@ -67,6 +69,8 @@ c95f30d,0.88,0.22,0.71,0.44,0.34,0.92,0.36
 7e12a6f,0.34,0.95,0.09,0.68,0.63,0.92,0.36
 ```
 
+### `mres merge`
+
 To merge the exposure model with the resilience indicators simply run the
 command:
 
@@ -108,17 +112,46 @@ in the `properties` field of the building feature as follows:
             "footprintArea": 240.5,
             "...": "...",
             "heat_rrl": 0.56,
-            "seismic_rrl": 0.09,
-            "flood_rrl": 0.45,
-            "wind_rrl": 0.08
-        }
+       }
         },
         ...
     ]
     }
 ```
 
-## Archetype Usage
+### archetype-functions
+
+Sometimes it is possible to use information embedded in the exposure model to
+calculate resilience indicators. By way of example, an exposure model might
+define building height, construction year and other information; this data could
+be used to make estimates of some of the seismic resilience indices. `mres`
+refers to the any functinos which derive resilience indices from an exposure
+model as `ArchetypeFunctions`. In the present version of `mres` only the
+abstract base class (ABC) and a test function has been defined, and more detail
+may be found the [Archetype Functions](#building-archetype-functions) section.
+
+Running the function `mres archetype-functions` cycles through the available
+`ArchetypeFunctions`, extracts the available information on a building by
+building basis. If the exposure model contains the required information to
+calculate any resilience indicator, the existing indicator CSVs will be
+modified, and extensive logs provided:
+
+```bash
+# before heat_resilience.csv:
+id,res_1,res_2,res_3,rec_1,e_f,m_1,m_2
+3f9a7c2,999,999,999,999,999,999,999
+b81d0e9,999,999,999,999,999,999,999
+f4276ab,999,999,999,999,999,999,999
+c95f30d,999,999,999,999,999,999,999
+7e12a6f,999,999,999,999,999,999,999
+$ mres archetype-functions
+# Output
+Building 3f9a7c2: Calculated e_f from ("year_of_construction", "cooling_system")
+Building b81d0e9: No resilience indicators estimated [insufficient data]
+...
+```
+
+## Building Archetype Functions
 
 ## Requirements, Installation and Setup
 
