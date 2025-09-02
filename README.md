@@ -130,7 +130,7 @@ model as `ArchetypeFunctions`. In the present version of `mres` only the
 abstract base class (ABC) and a test function has been defined, and more detail
 may be found the [Archetype Functions](#building-archetype-functions) section.
 
-Running the function `mres archetype-functions` cycles through the available
+Running the function `mres archetype-functions apply` cycles through the available
 `ArchetypeFunctions`, extracts the available information on a building by
 building basis. If the exposure model contains the required information to
 calculate any resilience indicator, the existing indicator CSVs will be
@@ -152,6 +152,142 @@ Building b81d0e9: No resilience indicators estimated [insufficient data]
 ```
 
 ## Building Archetype Functions
+
+In `mres`, an Archetype is a value embedded in the `properties` field of the
+exposure `geojson`. Archetypes are completely user defined, it is possible to
+define archetypes for buildings in any region on a case-by-base basis. The
+`ArchetypeFunction` itself is any function which applies to a specific building
+archetype and can, given known building features, calculate some resilience
+indicator. `ArchetypeFunction`s will be built up over the course of the project
+and are located at 'src/mres/archetype_functions.py'. The available archetypes
+are an `enum`s at the beggining of the file:
+
+```python
+class Archetype(Enum):
+    """Supported archetypes."""
+    _TEST_CLASS = "_test_class"
+    RESIDENTIAL = "residential"
+    COMMERICIAL = "commercial"
+    ...
+```
+
+Even though the they are called archetype _functions_, `ArchetypeFunctions` are
+actually built as abstract base classes (`ABC`) with the following attributes:
+
+    1. indicators_csv (Path): Path to the indicators_csv, passed as an argument to the
+       initilizer,
+    2. archetype (Archetype): Archetype this function is applicable too.
+    3. hazard (HazardType): Hazard this function is applicable too.
+    4. indicator (str): Resilience indicator this function is applicable too.
+    5. relevant_properties (list[str]): a list of relevant properties to extract
+       from the exposure model required for the calculation of the resilience
+       indicator.
+    6. results (dict[str, float]): Defaults to a defaultdict(999). The results
+       of the resilience indicator calculation.
+
+The `ABC` has to implemented methods for validating and modifying the indicators
+csv and one undefined (abstract) method `compute_indicator`. This method is the
+main arithmetic or methodology used for calculating the indicator is implemented
+here. 
+
+### Example Implementation
+
+The main contribution of researchers will be defining archetype functions. To
+better illustrate how these are added to the project, a mock case is presented
+below. It begins through the definition of a new archetype:
+`acerra_residential`. This new type must be added to the `Archetype` enum at the
+top of the file:
+
+```python
+class Archetype(Enum):
+    """Supported archetypes."""
+    # note that the test class should remain.
+    _TEST_CLASS = "_test_class"
+    ACERRA_RESIDENTIAL = "acerra_residential"
+    ...
+```
+
+Next, a concrete class is implemented, beginning with the initiziliation
+function:
+
+```python
+class AcerraResidentialHeat(ArchetypeFunction):
+    """Archetype function for residential buildings in Acerra."""
+
+    def __init__(self, indicators_csv: Path):
+        super().__init__(indicators_csv)
+        self.archetype = Archetype("acerra_residential")
+        self.hazard = HazardType("heat")
+        self.indicator = "e_f"
+        self.relevant_properties = ["has_cooling", "year_of_construction"]
+```
+
+The intilization signature shows that the resilience indicator that this
+function calculates is for the heat hazard and specifically the effeciency
+factor `e_f`. Furthermore, the required properties for calculation are
+`has_cooling` and `year_of_construction`. If any of these properties are
+missing, even if the archetype is known, the function will not be able to
+complete its calculation.
+
+Now, the `compute_indicator` function can be implemented:
+
+```python
+def compute_indicator(self, building:dict):
+    id = building["id"]
+    if not self._validate(building):
+        self.results[id] = 999
+        return None
+    if building["has_cooling"] == False:
+        self.results[id] = 1
+    elif (1960 < int(building["year_of_construction"]) <= 1970):
+        self.results[id] = 0.1
+    elif (1970 < int(building["year_of_construction"]) <= 1980):
+        self.results[id] = 0.2
+    elif (1980 < int(building["year_of_construction"]) <= 1990):
+        self.results[id] = 0.3
+    elif (1990 < int(building["year_of_construction"]) <= 2000):
+        self.results[id] = 0.4
+    elif (2000 < int(building["year_of_construction"]) <= 2010):
+        self.results[id] = 0.5
+    elif (2010 < int(building["year_of_construction"]) <= 2020):
+        self.results[id] = 0.6
+    else:
+        self.results[id] = 0.7
+```
+
+This particular implementation is fairly trivial: where an effeciency factor is
+associated with the year of construction of the building and the results being
+stored in the `results` attribute of the class. 
+
+Lastly, the new function is added to the mapping which takes on this particular
+format:
+
+```python
+ARCHETYPE_FUNCTIONS = {
+        # Archetype.VALUE : List[ArchetypeFunction]
+        Archetype.ACERRA_RESIDENTIAL:[AcerraResidentialHeat,],
+        } 
+```
+
+Notice how the mapping takes values which are of the type
+`list[ArchetypeFunction]`, as there may be many functions mapped to a single
+archetype.
+
+The exposure model should duly contain a properties field making reference to
+the archetype (if known), for example:
+
+```json
+"properties": {
+    "archetype": "acerra_residential",
+    <other features>,
+}
+```
+
+The parser that runs with the command `mres archetype-functions apply` will now
+know that any entity in the exposure model that has a given archetype
+"acerra_residential" is associated with some specific archetypical functions.
+The exposure model is parsed, the functions are invoked and the `indicators_csv`
+for the respective hazards are thus modified.
 
 ## Requirements, Installation and Setup
 
