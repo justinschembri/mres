@@ -1,6 +1,6 @@
 # Multi-Hazard Resilience Integration into the SDSS
 
-As ancillary support to the SDSS, the Command Line Interface (CLI, Figure _)
+As ancillary support to the SDSS, the Command Line Interface (CLI, Figure 1)
 tool **`mres`** has been developed. `mres` provides functionality for
 integrating the remaining natural hazard Resilience Readiness Levels (RRLs)
 described in Deliverable 6.1, namely:
@@ -16,26 +16,26 @@ weightings. Each internal indicator used to compute the overall RRL depends on a
 combination of external software tools, expert judgment, and case-specific
 analysis. `mres` supports this process in two ways.  
 
-![Figure _](image.MresHelp.png)
+![Figure 1](/docs/image.MresHelp.png)
 
 In the first case, it is assumed that experts compute the relevant indicators
 for buildings in the region of interest outside the SDSS platform and provide
 them as structured data. `mres` can ingest this structured data and update
 common geospatial file formats—currently supporting
-[`geojson`](https://geojson.org/). Figure _ illustrates the data flow for this
+[`geojson`](https://geojson.org/). Figure 2 illustrates the data flow for this
 functionality, while Section _ describes it.
 
-![Figure _](image.MresMerge.jpg)
+![Figure 2](/docs/image.MresMerge.jpg)
 
 In the second, more advanced case, users may define functions that draw on data
 from the underlying exposure model in the SDSS to compute some or all indicators
 and, optionally, the RRLs themselves. For example, building height and
 construction typology data from the exposure model could be combined with
 vulnerability curves to estimate probable losses from a given earthquake event.
-Figure _ illustrates the data flow for this methodology, while Section _
+Figure 3 illustrates the data flow for this methodology, while Section _
 describes it.  
 
-![Figure _](image.MresApply.jpg)
+![Figure 3](/docs/image.MresApply.jpg)
 
 `mres` is an open source tool and is available
 [here](https://github.com/justinschembri/mres).
@@ -104,9 +104,9 @@ For SDSS, the GeoJSON **must** be of type `FeatureCollection` and should include
 an `id` (string or numeric) for each feature. While `id` is optional in the
 schema, it is essential for `mres`.  
 
-An example GeoJSON is shown below. Figure _ illustrates the schema visually.  
+An example GeoJSON is shown below. Figure 4 illustrates the schema visually.  
 
-![Figure _](image.GeoJsonExplanation.jpg)  
+![Figure 4](/docs/image.GeoJsonExplanation.jpg)  
 
 ## The Resilience Indicators
 
