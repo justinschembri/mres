@@ -14,7 +14,10 @@ from mres.indicators.simple import (
         modify_geojson
     )
 # Typer setup
-cli = typer.Typer()
+cli = typer.Typer(
+        name="mres",
+        help="Resilience Readiness Level Integration tool for MultiCare's SDSS."
+        )
 
 @cli.command()
 def merge(
@@ -55,3 +58,6 @@ def template(
         ):
     ...
 
+@cli.command()
+def apply():
+    ...

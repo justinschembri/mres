@@ -119,7 +119,7 @@ in the `properties` field of the building feature as follows:
     }
 ```
 
-### archetype-functions
+### `mres apply`
 
 Sometimes it is possible to use information embedded in the exposure model to
 calculate resilience indicators. By way of example, an exposure model might
@@ -130,7 +130,7 @@ model as `ArchetypeFunctions`. In the present version of `mres` only the
 abstract base class (ABC) and a test function has been defined, and more detail
 may be found the [Archetype Functions](#building-archetype-functions) section.
 
-Running the function `mres archetype-functions apply` cycles through the available
+Running the function `mres apply` cycles through the available
 `ArchetypeFunctions`, extracts the available information on a building by
 building basis. If the exposure model contains the required information to
 calculate any resilience indicator, the existing indicator CSVs will be
@@ -144,7 +144,7 @@ b81d0e9,999,999,999,999,999,999,999
 f4276ab,999,999,999,999,999,999,999
 c95f30d,999,999,999,999,999,999,999
 7e12a6f,999,999,999,999,999,999,999
-$ mres archetype-functions
+$ mres apply
 # Output
 Building 3f9a7c2: Calculated e_f from ("year_of_construction", "cooling_system")
 Building b81d0e9: No resilience indicators estimated [insufficient data]
@@ -283,7 +283,7 @@ the archetype (if known), for example:
 }
 ```
 
-The parser that runs with the command `mres archetype-functions apply` will now
+The parser that runs with the command `mres apply` will now
 know that any entity in the exposure model that has a given archetype
 "acerra_residential" is associated with some specific archetypical functions.
 The exposure model is parsed, the functions are invoked and the `indicators_csv`
